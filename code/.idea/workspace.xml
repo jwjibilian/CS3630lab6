@@ -15,8 +15,8 @@
       <file leaf-file-name="go_to_goal.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/go_to_goal.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="480">
-              <caret line="215" column="60" lean-forward="false" selection-start-line="215" selection-start-column="60" selection-end-line="215" selection-end-column="60" />
+            <state relative-caret-position="467">
+              <caret line="45" column="42" lean-forward="true" selection-start-line="45" selection-start-column="42" selection-end-line="45" selection-end-column="42" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -320,8 +320,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/go_to_goal.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="215" column="60" lean-forward="false" selection-start-line="215" selection-start-column="60" selection-end-line="215" selection-end-column="60" />
+        <state relative-caret-position="467">
+          <caret line="45" column="42" lean-forward="true" selection-start-line="45" selection-start-column="42" selection-end-line="45" selection-end-column="42" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
