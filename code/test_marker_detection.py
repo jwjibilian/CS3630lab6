@@ -44,7 +44,7 @@ def cvt_marker_measurements(ar_markers):
 
 
 def display_opencv(robot: cozmo.robot.Robot):
-
+    robot.set_head_angle(cozmo.util.degrees(5)).wait_for_completed()
     # params
     camK = np.matrix([[295, 0, 160], [0, 295, 120], [0, 0, 1]], dtype='float32')
     marker_size = 4.8

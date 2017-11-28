@@ -16,6 +16,10 @@ from setting import *
 from particle_filter import *
 from utils import *
 
+from cozmo.util import degrees, distance_mm, speed_mmps
+from math import atan2
+from cozmo.anim import Triggers
+
 # camera params
 camK = np.matrix([[295, 0, 160], [0, 295, 120], [0, 0, 1]], dtype='float32')
 
@@ -129,6 +133,98 @@ async def run(robot: cozmo.robot.Robot):
 
     ############################################################################
     ######################### YOUR CODE HERE####################################
+
+    await robot.set_lift_height(0).wait_for_completed()
+    await robot.set_head_angle(degrees(5)).wait_for_completed()
+
+    isFinished = False
+    while True:
+        pf = ParticleFilter(grid)
+
+        if isFinished and not robot.is_picked_up:
+            print("not picked")
+            continue
+
+        if isFinished and robot.is_picked_up:
+            print("picked")
+            isFinished = False
+            continue
+
+        #Obtain Odom Info
+        curr_pose = robot.pose
+        odom = compute_odometry(curr_pose)
+
+        #Obtain list of currently seen markers and their poses
+        markers = await image_processing(robot)
+        marker2d_list = cvt_2Dmarker_measurements(markers)
+
+        #Update particle filter
+        estimate = pf.update(odom, marker2d_list)
+
+        #Update particle filter gui
+        gui.show_particles(pf.particles)
+        gui.show_mean(estimate[0], estimate[1], estimate[2], estimate[3])
+        gui.updated.set()
+
+        while not estimate[3]:
+            #Obtain Odom Info
+            curr_pose = robot.pose
+            odom = compute_odometry(curr_pose)
+
+            #Obtain list of currently seen markers and their poses
+            markers = await image_processing(robot)
+            marker2d_list = cvt_2Dmarker_measurements(markers)
+
+            #Update particle filter
+            estimate = pf.update(odom, marker2d_list)
+
+            #Update particle filter gui
+            gui.show_particles(pf.particles)
+            gui.show_mean(estimate[0], estimate[1], estimate[2], estimate[3])
+            gui.updated.set()
+
+            last_pose = curr_pose
+
+            if robot.is_picked_up:
+                continue
+
+            numMarkers = len(markers)
+            if numMarkers > 0 and marker2d_list[0][0] > 2.0:
+                await robot.drive_straight(distance_mm(50), speed_mmps(40)).wait_for_completed()
+            else:
+                await robot.turn_in_place(degrees(15)).wait_for_completed()
+
+        if robot.is_picked_up:
+            continue
+
+        #Rotate toward goal
+        x, y, h, c = compute_mean_pose(pf.particles)
+        y_diff = goal[1] - y
+        x_diff = goal[0] - x
+        tan = math.degrees(atan2(y_diff, x_diff))
+        rot = diff_heading_deg(tan, h)
+        await robot.turn_in_place(degrees(rot)).wait_for_completed()
+
+        #Move toward goal
+        dist_to_goal = grid_distance(x, y, goal[0], goal[1])
+        dist = 0
+        while dist < dist_to_goal:
+            min_dist = min(30, dist_to_goal - dist)
+            dist_mm = distance_mm(min_dist)
+            if robot.is_picked_up:
+                break
+            await robot.drive_straight(dist_mm, speed_mmps(30)).wait_for_completed()
+            dist = dist + min_dist
+
+        if dist != dist_to_goal or robot.is_picked_up:
+            continue
+
+        goal_rot = -1 * tan
+        await robot.turn_in_place(degrees(goal_rot)).wait_for_completed()
+        isFinished = True
+        await robot.play_anim_trigger(Triggers.SparkSuccess).wait_for_completed()
+
+
 
     ############################################################################
 
